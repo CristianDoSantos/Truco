@@ -7,12 +7,18 @@ import { Component, OnInit } from '@angular/core';
 })
 export class AppComponent implements OnInit {
   title = 'TrucoTop';
-
+  jogador = "";
+  isPlaying = false;
+  jogadores!: Jogador[];
+  rodadas = [];
+  jogadorAtualIndex = 0;
+  turno = 0;
+  rodadaAtual = 0;
+  cartaVirada!: number;
+  coringa!: number;
 
   ngOnInit(): void {
-    this.iniciarJogo(["cris", "lucas"])
   }
-
 
   criarBaralho(): Carta[] {
     let baralho: Carta[] = [];
@@ -32,31 +38,48 @@ export class AppComponent implements OnInit {
     return baralho.sort(() => Math.random() - 0.5);
   }
 
-  distribuirCartas(jogadores: Jogador[], baralho: Carta[]): void{
+  distribuirCartas(jogadores: Jogador[], baralho: Carta[]) {
     for (let i = 0; i < 3; i++) {
-        jogadores.forEach(jogador => {
-            jogador.cartas.push(baralho.pop()!);
-            console.log("opaaa", jogador.cartas)
-        });
+      jogadores.forEach(jogador => {
+          jogador.cartas.push(baralho.pop()!);
+      });
     }
-    console.log("fim ", jogadores);
+
+    this.definirCoringa(baralho.pop()!);
     
+    return jogadores;    
   }
 
-  iniciarJogo(nomesJogadores: string[]): Jogo {
-    const jogadores: Jogador[] = nomesJogadores.map(nome => ({ nome, cartas: [], pontos: 0 }));
-    const baralho: Carta[] = this.embaralhar(this.criarBaralho());
-    let teste = this.distribuirCartas(jogadores, baralho);
+  definirCoringa(carta: Carta) {
+    this.cartaVirada = carta.valor;
+    if(carta.valor == Valor.REI) {
+      this.coringa = Valor.AS
+    }else {
+      this.coringa = carta.valor + 1;
+    }
+  }
 
-    console.log(jogadores);
+  iniciarJogo() {
+    if(this.jogador.trim().length > 0){
+      this.isPlaying = true;
+      let nomesJogadores: string[] = ["Bot", this.jogador]
+      const jogadores: Jogador[] = nomesJogadores.map(nome => ({ nome, cartas: [], pontos: 0 }));
+      const baralho: Carta[] = this.embaralhar(this.criarBaralho());
+      this.jogadores = this.distribuirCartas(jogadores, baralho);
+      this.reset();
+    }
+  }
 
-    return {
-        jogadores,
-        rodadas: [],
-        jogadorAtualIndex: 0,
-        turno: 0,
-        rodadaAtual: 0
-    };
+  reset() {
+    this.rodadas = [];
+    this.jogadorAtualIndex = 0;
+    this.turno = 0;
+    this.rodadaAtual = 0;
+  }
+
+  escolherAleatoriamente<T>(opcao1: T, opcao2: T): T {
+    const indiceAleatorio = Math.random() < 0.5 ? 0 : 1;
+    return indiceAleatorio === 0 ? opcao1 : opcao2;
   }
 }
 
